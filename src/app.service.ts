@@ -15,7 +15,6 @@ export class AppService {
     const response = await this.httpService.axiosRef.get(
       `${SW_BASE_URL}/films/${filmNumber}`,
     );
-    console.log('response', response.data);
     return response.data.starships;
   }
   async getCostOfStarshipsInFilm(
@@ -28,7 +27,6 @@ export class AppService {
     let totalCost: number = 0;
     let unknownCount: number = 0;
 
-    console.log(starshipUrls);
     for (const url of starshipUrls) {
       const urlComponents = url.split('/');
       const starshipId = parseInt(urlComponents[urlComponents.length - 2]);
@@ -40,7 +38,6 @@ export class AppService {
 
       let rawStarshipCost = this.starshipCostCache.get(starshipId);
       if (!rawStarshipCost) {
-        console.log('adding starship id to cache', starshipId);
         rawStarshipCost = await (
           await this.httpService.axiosRef.get(url)
         ).data.cost_in_credits;
@@ -55,5 +52,14 @@ export class AppService {
     }
 
     return { cost: totalCost, unknownCosts: unknownCount };
+  }
+
+  async getCostOfAllStarships(): Promise<FilmStarshipsCostResponse[]> {
+    const res: FilmStarshipsCostResponse[] = [];
+    for (let i = 1; i <= 6; i++) {
+      res.push(await this.getCostOfStarshipsInFilm(i));
+    }
+
+    return res;
   }
 }
